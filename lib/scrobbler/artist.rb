@@ -67,7 +67,7 @@ module Scrobbler
     attr_accessor :match, :tagcount, :listeners
     
     class << self
-      def new_from_libxml(xml)
+      def new_from_xml(xml)
         data = {}
       
         # Get all information from the root's children nodes

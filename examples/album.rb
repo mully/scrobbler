@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'scrobbler'))
 
-Scrobbler::Base::api_key = "..add..";
+Scrobbler::Base::api_key = "cc85b6d4313e40450230872430b4d631";
 
 album = Scrobbler::Album.new('Some Hearts', :artist => 'Carrie Underwood', :include_info => true)
 
@@ -13,7 +13,7 @@ puts "Release Date: #{album.release_date.strftime('%m/%d/%Y')}"
 puts
 puts
 
-puts "Tracks"
-longest_track_name = album.tracks.collect(&:name).sort { |x, y| y.length <=> x.length }.first.length
-puts "=" * longest_track_name
-album.tracks.each { |t| puts t.name }
+# puts "Tracks"
+# longest_track_name = album.tracks.collect(&:name).sort { |x, y| y.length <=> x.length }.first.length
+# puts "=" * longest_track_name
+# album.tracks.each { |t| puts t.name }

@@ -44,13 +44,22 @@ module Scrobbler
     attr_accessor :duration, :listeners
     
     class << self
-      def new_from_libxml(xml)
+      def new_from_xml(xml)
+        data = self.data_from_xml(xml)
+        return nil if data[:name].empty?
+        Track.new(data[:artist], data[:name], data)
+      end
+      
+      def data_from_xml(xml) 
         data = {}
         xml.children.each do |child|
           data[:name] = child.content if child.name == 'name'
-          data[:mbid] = child.content if child.name == 'mbid'
+          data[:mbid] = child.content.to_i if child.name == 'mbid'
+          data[:id] = child.content.to_i if child.name == 'id'
+          data[:duration] = child.content.to_i if child.name == 'duration'
           data[:url] = child.content if child.name == 'url'
           data[:date] = Time.parse(child.content) if child.name == 'date'
+          data[:listeners] = child.content.to_i if child.name == 'listeners'
           data[:artist] = Artist.new_from_libxml(child) if child.name == 'artist'
           data[:album] = Album.new_from_libxml(child) if child.name == 'album'
           data[:playcount] = child.content.to_i if child.name == 'playcount'
@@ -65,22 +74,38 @@ module Scrobbler
           end
         end
         
-        
         data[:rank] = xml['rank'].to_i if xml['rank']
         data[:now_playing] = true if xml['nowplaying'] && xml['nowplaying'] == 'true'
         
-        data[:now_playing] = false if data[:now_playing].nil?
-        
-        Track.new(data[:artist], data[:name], data)
-      end
+        data[:now_playing] = false if data[:now_playing].nil? 
     end
     
     def initialize(artist, name, data={})
-      raise ArgumentError, "Artist is required" if artist.blank?
-      raise ArgumentError, "Name is required" if name.blank?
+      if artist.class == String && data[:mbid] && data[:mbid] == true
+        
+        else 
+        raise ArgumentError, "Artist is required" if artist.blank?
+        raise ArgumentError, "Name is required" if name.blank?
+      end
       @artist = artist
       @name = name
+      load_album_info() if data[:include_info]
       populate_data(data)
+      
+      super()      
+      # Support old version of initialize where we had (artist_name, album_name)
+      if input.class == String
+        data = {:artist => name, :name => input}
+        name = input, input = data
+      end
+      data = {:include_profile => false}.merge(input)
+      raise ArgumentError, "Artist or mbid is required" if data[:artist].nil? && data[:mbid].nil?
+      raise ArgumentError, "Name is required" if name.blank?
+      @name = name
+      populate_data(data)
+      load_album_info() if data[:include_info]
+      load_track_info() if data[:include_track_info]
+      
     end
     
     def add_tags(tags)

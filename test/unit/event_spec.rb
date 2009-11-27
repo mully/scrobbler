@@ -30,11 +30,11 @@ describe Scrobbler::Event do
     end
 
     it 'should have 6 attendees' do
-      @event.attendees.size.should eql 6
+      @event.attendees.size.should == 6
     end
 
     it "should know it's attendees names" do
-      @event.attendees.collect(&:name).should eql @attendees
+      @event.attendees.collect(&:name).should == @attendees
     end
 
     describe 'first attendee' do
@@ -43,23 +43,23 @@ describe Scrobbler::Event do
       end
 
       it "should know it's realname" do
-        @attendee.realname.should eql 'Jane'
+        @attendee.realname.should == 'Jane'
       end
       
       it "should know it's small image" do
-        @attendee.image(:small).should eql 'http://userserve-ak.last.fm/serve/34/17805805.jpg'
+        @attendee.image(:small).should == 'http://userserve-ak.last.fm/serve/34/17805805.jpg'
       end
       
       it "should know it's medium image" do
-        @attendee.image(:medium).should eql 'http://userserve-ak.last.fm/serve/64/17805805.jpg'
+        @attendee.image(:medium).should == 'http://userserve-ak.last.fm/serve/64/17805805.jpg'
       end
       
       it "should know it's large image" do
-        @attendee.image(:large).should eql 'http://userserve-ak.last.fm/serve/126/17805805.jpg'
+        @attendee.image(:large).should eql('http://userserve-ak.last.fm/serve/126/17805805.jpg')
       end
 
       it "should know it's large url" do
-        @attendee.url.should eql 'http://www.last.fm/user/ikea'
+        @attendee.url.should == 'http://www.last.fm/user/ikea'
       end
     end
   end

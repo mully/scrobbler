@@ -40,6 +40,10 @@ module Scrobbler
       @url = url
       populate_data(data)
     end
+    
+    def fetch() 
+      
+    end
   end
 end
 

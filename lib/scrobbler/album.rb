@@ -58,19 +58,35 @@ module Scrobbler
     attr_reader :chartposition, :position
     
     class << self
-      def new_from_libxml(xml)
+      
+      def new_from_xml(xml)
+        data = self.data_from_xml(xml)
+        return nil if data[:name].empty?
+        Album.new(data[:name], data)
+      end
+      
+      def data_from_xml(xml)
         data = {}
 
         xml.children.each do |child|
           data[:name] = child.content if ['name', 'title'].include?(child.name)
           data[:playcount] = child.content.to_i if child.name == 'playcount'
           data[:tagcount] = child.content.to_i if child.name == 'tagcount'
+          data[:release_date] = Time.parse(child.content.strip) if child.name == 'releasedate'
+          data[:listeners] = child.content.to_i if child.name == 'listeners'
           data[:mbid] = child.content if child.name == 'mbid'
           data[:url] = child.content if child.name == 'url'
-          data[:artist] = Artist.new_from_libxml(child) if child.name == 'artist'
+          data[:artist] = Artist.new_from_xml(child) if child.name == 'artist'
           maybe_image_node(data, child)
+          if child.name == 'toptags'
+            data[:top_tags] = []
+            child.children.each do |grandchild|
+              next unless grandchild.name == 'tag'
+              data[:top_tags] << Tag.new_from_xml(grandchild)
+            end
+          end  
         end
-        
+                
         # If we have not found anything in the content of this node yet then
         # this must be a simple artist node which has the name of the artist
         # as its content
@@ -83,8 +99,7 @@ module Scrobbler
         
         # If there is no name defined, than this was an empty album tag
         return nil if data[:name].empty?
-        
-        Album.new(data[:name], data)
+        data
       end
     end
       
@@ -104,11 +119,12 @@ module Scrobbler
       raise ArgumentError, "Name is required" if name.blank?
       @name = name
       populate_data(data)
-      load_info() if data[:include_info]
+      load_album_info() if data[:include_info]
+      load_track_info() if data[:include_track_info]
     end
     
-    # Indicates if the info was already loaded
-    @info_loaded = false 
+    # Indicates if the album info was already loaded
+    @album_info_loaded = false 
     
     # Load additional information about this album
     #
@@ -116,34 +132,28 @@ module Scrobbler
     #
     # @todo Parse wiki content
     # @todo Add language code for wiki translation
-    def load_info
-      return nil if @info_loaded
-      xml = Base.request('album.getinfo', {'artist' => @artist, 'album' => @name})
+     def load_album_info
+        return nil if @album_info_loaded
+      params = @mbid ? {'mbid' => @mbid} : {'artist' => @artist, 'album' => @name}
+      xml = Base.request('album.getinfo', params)
       unless xml.root['status'] == 'failed'
-        xml.root.children.each do |childL1|
-          next unless childL1.name == 'album'
-          
-          childL1.children.each do |childL2|
-            @url = childL2.content if childL2.name == 'url'
-            @id = childL2.content if childL2.name == 'id'
-            @mbid = childL2.content if childL2.name == 'mbid'
-            @release_date = Time.parse(childL2.content.strip) if childL2.name == 'releasedate'
-            check_image_node childL2
-            @listeners = childL2.content.to_i if childL2.name == 'listeners'
-            @playcount = childL2.content.to_i if childL2.name == 'playcount'
-            if childL2.name == 'toptags'
-              @top_tags = []
-              childL2.children.each do |childL3|
-                next unless childL3.name == 'tag'
-                @top_tags << Tag.new_from_libxml(childL3)
-              end # childL2.children.each do |childL3|
-            end # if childL2.name == 'toptags'
-          end # childL1.children.each do |childL2|
-        end # xml.children.each do |childL1|
-        @info_loaded  = true
+        xml.root.children.each do |child|
+          next unless child.name == 'album'
+          data = self.class.data_from_xml(child)
+          populate_data(data)
+          @info_loaded = true
+          break
+        end # xml.children.each do |child|
       end
     end
     
+    # Indicates if the album info was already loaded
+    @track_info_loaded = false
+    def load_track_info
+       return nil if @track_info_loaded
+       load_album_info() if !@album_info_loaded
+       
+    end
     # Tag an album using a list of user supplied tags. 
     def add_tags(tags)
         # This function require authentication, but SimpleAuth is not yet 2.0
