@@ -12,6 +12,7 @@ lib/scrobbler/scrobble.rb
 lib/scrobbler/user.rb
 lib/scrobbler/album.rb
 lib/scrobbler/tag.rb
+lib/scrobbler/playlist.rb
 lib/scrobbler.rb
 scrobbler.gemspec
 MIT-LICENSE
@@ -25,6 +26,7 @@ examples/scrobble.rb
 examples/user.rb
 examples/album.rb
 examples/tag.rb
+examples/playlist.rb
 test/unit/album_test.rb
 test/unit/playing_test.rb
 test/unit/scrobble_test.rb
