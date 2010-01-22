@@ -47,36 +47,38 @@ module Scrobbler
   class Album < Base
     mixins :image
     
-    attr_reader :artist, :artist_mbid, :name, :mbid, :playcount, :rank, :url
+    attr_reader :artist, :album_id, :artist_mbid, :name, :mbid, :playcount, :rank, :url
     attr_reader :reach, :release_date, :listeners, :playcount, :top_tags
     attr_reader :image_large, :image_medium, :image_small, :tagcount
     
     # needed on top albums for tag
-    attr_reader :count
+    attr_reader :count, :playlist
     
     # needed for weekly album charts
     attr_reader :chartposition, :position
     
     class << self
       
-      def new_from_xml(xml)
+      def new_from_xml(xml, o = {})
         data = self.data_from_xml(xml)
+        puts "Creating Album: #{data[:name]}"
         return nil if data[:name].empty?
-        Album.new(data[:name], data)
+        Album.new(data[:artist], data[:name], data)
       end
       
-      def data_from_xml(xml)
+      def data_from_xml(xml, o = {})
         data = {}
-
+        o = {:include_artist_info => true}.merge(o) 
         xml.children.each do |child|
           data[:name] = child.content if ['name', 'title'].include?(child.name)
+          data[:album_id] = child.content.to_i if child.name == 'id'
           data[:playcount] = child.content.to_i if child.name == 'playcount'
           data[:tagcount] = child.content.to_i if child.name == 'tagcount'
           data[:release_date] = Time.parse(child.content.strip) if child.name == 'releasedate'
           data[:listeners] = child.content.to_i if child.name == 'listeners'
           data[:mbid] = child.content if child.name == 'mbid'
           data[:url] = child.content if child.name == 'url'
-          data[:artist] = Artist.new_from_xml(child) if child.name == 'artist'
+          data[:artist] = Artist.new_from_xml(child) if (child.name == 'artist' || child.name == 'creator') && o[:include_artist_info]
           maybe_image_node(data, child)
           if child.name == 'toptags'
             data[:top_tags] = []
@@ -107,20 +109,23 @@ module Scrobbler
     # information is loaded
     #
     # @todo Albums should be able to be created via a MusicBrainz id too
-    def initialize(name, input={})
-      super()      
-      # Support old version of initialize where we had (artist_name, album_name)
-      if input.class == String
-        data = {:artist => name, :name => input}
-        name = input, input = data
+    def initialize(artist, name, data={})    
+      super()
+      raise ArgumentError, "Artist or MBID is required" if artist.blank?
+      
+      #check for old style parameter arguments, infer MBID if only an artist is given
+      if artist.class == String && name.blank? && data == {}
+        raise ArgumentError, "MBID is required for an MBID query" if input.blank?
+        @mbid = input
+        load_album_info() # data must be fetched since all we have is an mbid, nothing else useful
+      else
+        raise ArgumentError, "Artist is required" if artist.blank?
+        raise ArgumentError, "Album Name is required" if name.blank?
+        @artist = Artist.new(artist)
+        @name = name
+        load_album_info() if data[:include_info] || data[:include_all_info]
+        load_track_info() if data[:include_all_info]
       end
-      data = {:include_profile => false}.merge(input)
-      raise ArgumentError, "Artist or mbid is required" if data[:artist].nil? && data[:mbid].nil?
-      raise ArgumentError, "Name is required" if name.blank?
-      @name = name
-      populate_data(data)
-      load_album_info() if data[:include_info]
-      load_track_info() if data[:include_track_info]
     end
     
     # Indicates if the album info was already loaded
@@ -133,15 +138,16 @@ module Scrobbler
     # @todo Parse wiki content
     # @todo Add language code for wiki translation
      def load_album_info
-        return nil if @album_info_loaded
-      params = @mbid ? {'mbid' => @mbid} : {'artist' => @artist, 'album' => @name}
+      pp "Loading Album Info"
+      return nil if @album_info_loaded
+      params = @mbid ? {'mbid' => @mbid} : {'artist' => @artist.name, 'album' => @name}
       xml = Base.request('album.getinfo', params)
       unless xml.root['status'] == 'failed'
         xml.root.children.each do |child|
           next unless child.name == 'album'
           data = self.class.data_from_xml(child)
           populate_data(data)
-          @info_loaded = true
+          @album_info_loaded = true
           break
         end # xml.children.each do |child|
       end
@@ -152,8 +158,10 @@ module Scrobbler
     def load_track_info
        return nil if @track_info_loaded
        load_album_info() if !@album_info_loaded
-       
+       @playlist = Playlist.new_from_album(self)
+       @tracks = @playlist.tracks
     end
+    
     # Tag an album using a list of user supplied tags. 
     def add_tags(tags)
         # This function require authentication, but SimpleAuth is not yet 2.0

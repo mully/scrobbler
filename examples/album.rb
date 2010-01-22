@@ -2,9 +2,10 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'scrobbl
 
 Scrobbler::Base::api_key = "cc85b6d4313e40450230872430b4d631";
 
-album = Scrobbler::Album.new('Some Hearts', :artist => 'Carrie Underwood', :include_info => true)
+album = Scrobbler::Album.new('Carrie Underwood', 'Some Hearts', :include_all_info => true)
 
 puts "Album: #{album.name}"
+puts "Album ID: #{album.album_id}"
 puts "Artist: #{album.artist}"
 puts "Playcount: #{album.playcount}"
 puts "URL: #{album.url}"

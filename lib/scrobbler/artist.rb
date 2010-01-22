@@ -67,7 +67,14 @@ module Scrobbler
     attr_accessor :match, :tagcount, :listeners
     
     class << self
-      def new_from_xml(xml)
+      def new_from_xml(xml, o={})
+        data = data_from_xml(xml, o)
+        puts "Creating Artist: #{data[:name]}"
+        return nil if data[:name].nil?
+        Artist.new(data[:name], data)
+      end
+      
+      def data_from_xml(xml, o={})
         data = {}
       
         # Get all information from the root's children nodes
@@ -93,9 +100,7 @@ module Scrobbler
         data[:rank] = xml['rank'].to_i if xml['rank']
         maybe_streamable_attribute data, xml
         data[:mbid] = xml['mbid'] if xml['mbid']
-        
-        # Step 3 fill the object
-        Artist.new(data[:name], data)
+        data
       end
     end
     
@@ -105,6 +110,20 @@ module Scrobbler
       @name = name
       populate_data(data)
     end
+    
+    @info_loaded = false
+    # Get the metadata
+    def load_info
+        doc = Base.request('artist.getinfo', {'artist' => @name})
+        doc.root.children.each do |child|
+            next unless child.name == 'artist'
+            data = self.class.data_from_xml(child)
+            populate_data(data)
+            @info_loaded = true
+            break
+        end
+    end # load_info
+    
     
     # Get the URL to the ical or rss representation of the current events that
     # a artist will play
@@ -135,29 +154,7 @@ module Scrobbler
     def top_tags(force=false)
       get_response('artist.gettoptags', :top_tags, 'toptags', 'tag', {'artist' => @name}, force)
     end
-    
-    @info_loaded = false
-    # Get the metadata
-    def load_info
-        doc = Base.request('artist.getinfo', {'artist' => @name})
-        doc.root.children.each do |childL1|
-            next unless childL1.name == 'artist'
-            childL1.children.each do |child|
-                @mbid = child.content if child.name == 'mbid'
-                @url = child.content if child.name == 'url'
-                check_image_node child
-                check_streamable_node child
-                if child.name == 'stats'
-                    child.children.each do |childL3|
-                        @listeners = childL3.content.to_i if childL3.name == 'listeners'
-                        @playcount = childL3.content.to_i if childL3.name == 'playcount'
-                    end
-                end
-            end
-        end
-        @info_loaded = true
-    end # load_info
-    
+        
     def ==(otherArtist)
       if otherArtist.is_a?(Scrobbler::Artist)
         return (@name == otherArtist.name)

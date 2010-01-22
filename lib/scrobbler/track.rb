@@ -44,24 +44,33 @@ module Scrobbler
     attr_accessor :duration, :listeners
     
     class << self
-      def new_from_xml(xml)
-        data = self.data_from_xml(xml)
-        return nil if data[:name].empty?
-        Track.new(data[:artist], data[:name], data)
+      def new_from_xml(xml, o = {})
+        data = self.data_from_xml(xml, o)
+        puts "Creating Track: #{data[:name]}"
+        return nil if data[:name].nil?
+        if data[:artist].blank? 
+          if data[:creator].blank? 
+            data[:artist] = data[:creator];
+          else 
+            raise Error, "Supplied XML to track has no artist or creator"
+          end
+        end
+        Track.new(data[:artist], data)
       end
       
-      def data_from_xml(xml) 
+      def data_from_xml(xml, o = {})
+        o = {:include_album_info => true, :include_artist_info => true}.merge(o) 
         data = {}
         xml.children.each do |child|
-          data[:name] = child.content if child.name == 'name'
+          data[:name] = child.content if child.name == 'name' || child.name == 'title'
           data[:mbid] = child.content.to_i if child.name == 'mbid'
           data[:id] = child.content.to_i if child.name == 'id'
           data[:duration] = child.content.to_i if child.name == 'duration'
-          data[:url] = child.content if child.name == 'url'
+          data[:url] = child.content if child.name == 'url' || child.name == 'identifier'
           data[:date] = Time.parse(child.content) if child.name == 'date'
           data[:listeners] = child.content.to_i if child.name == 'listeners'
-          data[:artist] = Artist.new_from_libxml(child) if child.name == 'artist'
-          data[:album] = Album.new_from_libxml(child) if child.name == 'album'
+          data[:artist] = Artist.new_from_xml(child, o) if (child.name == 'artist' || child.name == 'creator') && o[:include_artist_info]
+          data[:album] = Album.new_from_xml(child, o) if child.name == 'album' && o[:include_album_info]
           data[:playcount] = child.content.to_i if child.name == 'playcount'
           data[:tagcount] = child.content.to_i if child.name == 'tagcount'
           maybe_image_node(data, child)
@@ -74,75 +83,56 @@ module Scrobbler
           end
         end
         
+        
         data[:rank] = xml['rank'].to_i if xml['rank']
         data[:now_playing] = true if xml['nowplaying'] && xml['nowplaying'] == 'true'
         
         data[:now_playing] = false if data[:now_playing].nil? 
+        o.merge(data)
+      end
     end
     
-    def initialize(artist, name, data={})
-      if artist.class == String && data[:mbid] && data[:mbid] == true
-        
-        else 
-        raise ArgumentError, "Artist is required" if artist.blank?
-        raise ArgumentError, "Name is required" if name.blank?
+    def initialize(input, data={})
+      super()
+      #check for old style parameter arguments
+      if data.class == String 
+        data = {:name => data}
       end
-      @artist = artist
-      @name = name
-      load_album_info() if data[:include_info]
-      populate_data(data)
       
-      super()      
-      # Support old version of initialize where we had (artist_name, album_name)
-      if input.class == String
-        data = {:artist => name, :name => input}
-        name = input, input = data
+      if input.class == String && data[:mbid] && data[:mbid] == true
+        raise ArgumentError, "MBID is required for an MBID query" if input.blank?
+        @mbid = input
+        load_album_info() unless !data[:include_info].nil? && data[:include_info] == false 
+      else
+        raise ArgumentError, "Artist is required" if input.blank?
+        raise ArgumentError, "Name is required" if data[:name].blank?
+        @artist = Artist.new(input)
+        @name = data[:name]
+        load_info() if data[:include_info]
       end
-      data = {:include_profile => false}.merge(input)
-      raise ArgumentError, "Artist or mbid is required" if data[:artist].nil? && data[:mbid].nil?
-      raise ArgumentError, "Name is required" if name.blank?
-      @name = name
-      populate_data(data)
-      load_album_info() if data[:include_info]
-      load_track_info() if data[:include_track_info]
-      
     end
     
     def add_tags(tags)
-        # This function requires authentication, but SimpleAuth is not yet 2.0
-        raise NotImplementedError
+      # This function requires authentication, but SimpleAuth is not yet 2.0
+      raise NotImplementedError
     end
 
     def ban
-        # This function requires authentication, but SimpleAuth is not yet 2.0
-        raise NotImplementedError
+      # This function requires authentication, but SimpleAuth is not yet 2.0
+      raise NotImplementedError
     end
     
     @info_loaded = false
     def load_info
-        return nil if @info_loaded
-        doc = Base.request('track.getinfo', :artist => @artist.name, :track => @name)
-        doc.root.children.each do |childL1|
-            next unless childL1.name == 'track'
-            childL1.children.each do |child|
-                @id = child.content.to_i if child.name == 'id'
-                @mbid = child.content if child.name == 'mbid'
-                @duration = child.content.to_i if child.name == 'duration'
-                @url = child.content if child.name == 'url'
-                if child.name == 'streamable'
-                    if ['1', 'true'].include?(child.content)
-                      @streamable = true
-                    else
-                      @streamable = false
-                    end
-                end
-                @listeners = child.content.to_i if child.name == 'listeners'
-                @playcount = child.content.to_i if child.name == 'playcount'
-                @artist = Artist.new_from_libxml(child) if child.name == 'artist'
-                @album = Album.new_from_libxml(child) if child.name == 'album'
-            end
-        end
+      return nil if @info_loaded
+      doc = Base.request('track.getinfo', :artist => @artist.name, :track => @name)
+      doc.root.children.each do |child|
+        next unless child.name == 'track'
+        data = self.class.data_from_xml(child)
+        populate_data(data)
         @info_loaded = true
+        break
+      end
     end
 
     def top_fans(force=false)
