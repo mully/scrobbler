@@ -57,6 +57,7 @@ Gem::Specification.new do |s|
      "lib/scrobbler/track.rb",
      "lib/scrobbler/user.rb",
      "lib/scrobbler/venue.rb",
+     "scrobbler.gemspec",
      "setup.rb",
      "tasks/jeweler.rake",
      "tasks/rdoc.rake",
