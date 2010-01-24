@@ -61,7 +61,6 @@ module Scrobbler
       
       def new_from_xml(xml, o = {})
         data = self.data_from_xml(xml)
-        puts "Creating Album: #{data[:name]}"
         return nil if data[:name].empty?
         Album.new(data[:artist], data[:name], data)
       end
@@ -138,7 +137,6 @@ module Scrobbler
     # @todo Parse wiki content
     # @todo Add language code for wiki translation
      def load_album_info
-      pp "Loading Album Info"
       return nil if @album_info_loaded
       params = @mbid ? {'mbid' => @mbid} : {'artist' => @artist.name, 'album' => @name}
       xml = Base.request('album.getinfo', params)

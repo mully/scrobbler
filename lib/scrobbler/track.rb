@@ -46,7 +46,6 @@ module Scrobbler
     class << self
       def new_from_xml(xml, o = {})
         data = self.data_from_xml(xml, o)
-        puts "Creating Track: #{data[:name]}"
         return nil if data[:name].nil?
         if data[:artist].blank? 
           if data[:creator].blank? 

@@ -33,7 +33,7 @@ class Base
             next unless child.name == parent.to_s
             child.children.each do |child2|
                 next unless child2.name == element.to_s
-                elements << scrobbler_class.new_from_libxml(child2)
+                elements << scrobbler_class.new_from_xml(child2)
             end
         end
         elements
