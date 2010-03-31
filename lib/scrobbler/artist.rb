@@ -62,6 +62,8 @@ module Scrobbler
   class Artist < Base
     mixins :image, :streamable
     
+    attr_reader :image_large, :image_medium, :image_small, :image_extralarge
+    
     attr_accessor :name, :mbid, :playcount, :rank, :url, :count
     attr_accessor :chartposition
     attr_accessor :match, :tagcount, :listeners
