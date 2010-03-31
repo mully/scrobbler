@@ -58,7 +58,7 @@ module Scrobbler
         false
       end
 
-      def new_from_libxml(xml)
+      def new_from_xml(xml)
         update_or_create_from_xml(xml)
       end
     end

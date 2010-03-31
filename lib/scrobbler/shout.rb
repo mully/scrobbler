@@ -3,7 +3,7 @@ module Scrobbler
     attr_reader :author, :date, :body
     
     class << self
-      def new_from_libxml(xml)
+      def new_from_xml(xml)
         data={}
         xml.children.each do |child|
           data[:body] = child.content if child.name == 'body'

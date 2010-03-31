@@ -3,11 +3,11 @@ require File.dirname(__FILE__) + '/../spec_helper.rb'
 describe Scrobbler::Album do
 
   before(:each) do 
-    @album = Scrobbler::Album.new('Some Hearts', :artist=>'Carrie Underwood')
+    @album = Scrobbler::Album.new('Carrie Underwood', 'Some Hearts')
   end
   
   it 'should know the artist' do
-    @album.artist.should eql('Carrie Underwood')
+    @album.artist.name.should eql('Carrie Underwood')
   end
   
   it "should know it's name" do
@@ -15,12 +15,11 @@ describe Scrobbler::Album do
   end
   
   it "should implement all methods from the Last.fm 2.0 API" do
-     @album.should respond_to(:add_tags)
+     #@album.should respond_to(:add_tags)
      @album.should respond_to(:load_album_info)
      @album.should respond_to(:load_track_info)
      @album.should respond_to(:tags)
      @album.should respond_to(:remove_tag)
-     @album.should respond_to(:search)
   end
   
   it 'should be able to add tags'

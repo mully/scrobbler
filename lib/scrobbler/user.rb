@@ -53,7 +53,7 @@ module Scrobbler
     attr_reader :username, :url, :weight, :match, :realname, :name
     
     class << self
-      def new_from_libxml(xml)
+      def new_from_xml(xml)
         data = {}
         xml.children.each do |child|
           data[:name] = child.content if child.name == 'name'
