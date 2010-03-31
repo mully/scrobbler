@@ -28,6 +28,12 @@ describe Scrobbler::Artist do
     @artist.should respond_to(:shout)
   end
   
+  it 'should be able to search' do
+    search_results = Scrobbler::Artist.search('metallica')
+    
+    search_results.first.name.should eql('Metallica')
+  end
+  
   it 'should be able to add tags'
   
   it 'should be able to load a list of upcoming events'

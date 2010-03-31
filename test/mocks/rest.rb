@@ -149,6 +149,8 @@ module Scrobbler
               return File.read(File.dirname(__FILE__) + "/../fixtures/xml/artist/topalbums.xml")
             elsif pieces.last =~ /[?&]method=artist\.getsimilar/
               return File.read(File.dirname(__FILE__) + "/../fixtures/xml/artist/similar.xml")
+            elsif pieces.last =~ /[?&]method=album\.search/
+              return File.read(File.dirname(__FILE__) + "/../fixtures/xml/album/search.xml")
             elsif pieces.last =~ /[?&]method=tag\.gettoptracks/
               return File.read(File.dirname(__FILE__) + "/../fixtures/xml/tag/toptracks.xml")
             elsif pieces.last =~ /[?&]method=tag\.gettopartists/
@@ -177,6 +179,8 @@ module Scrobbler
               return File.read(File.dirname(__FILE__) + "/../fixtures/xml/user/neighbours.xml")
             elsif pieces.last =~ /[?&]method=user\.getrecenttracks/
               return File.read(File.dirname(__FILE__) + "/../fixtures/xml/user/recenttracks.xml")
+            elsif pieces.last =~ /[?&]method=user\.playlists/
+              return File.read(File.dirname(__FILE__) + "/../fixtures/xml/user/playlists.xml")
             elsif pieces.last =~ /[?&]method=event\.getinfo/
               return File.read(File.dirname(__FILE__) + "/../fixtures/xml/event/event.xml")
             elsif pieces.last =~ /[?&]method=event\.getshouts/

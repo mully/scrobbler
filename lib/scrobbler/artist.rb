@@ -66,7 +66,15 @@ module Scrobbler
     attr_accessor :chartposition
     attr_accessor :match, :tagcount, :listeners
     
-    class << self
+    class << self      
+      
+      def search(name, data={})  
+        params = {'artist' => name}
+        xml = Base.request('artist.search', params)
+        
+        xml.find('/lfm/results/artistmatches/artist').map {|artist| Scrobbler::Artist.new_from_xml(artist)}
+      end
+      
       def new_from_xml(xml, o={})
         data = data_from_xml(xml, o)
         return nil if data[:name].nil?
