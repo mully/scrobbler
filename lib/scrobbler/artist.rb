@@ -66,6 +66,9 @@ module Scrobbler
     attr_accessor :chartposition
     attr_accessor :match, :tagcount, :listeners
     
+    # bio data
+    attr_accessor :published, :summary, :description
+    
     class << self      
       
       def search(name, data={})  
@@ -97,6 +100,10 @@ module Scrobbler
           maybe_image_node(data, child)
         end        
         
+        data[:published] = xml.find_first('/lfm/artist/bio/published').content if xml.find_first('/lfm/artist/bio/published')
+        data[:summary] = xml.find_first('/lfm/artist/bio/summary').content if xml.find_first('/lfm/artist/bio/summary')
+        data[:description] = xml.find_first('/lfm/artist/bio/content').content if xml.find_first('/lfm/artist/bio/content')
+          
         # If we have not found anything in the content of this node yet then
         # this must be a simple artist node which has the name of the artist
         # as its content
