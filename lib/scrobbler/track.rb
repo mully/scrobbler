@@ -44,6 +44,14 @@ module Scrobbler
     attr_accessor :duration, :listeners
     
     class << self
+      
+      def search(name, data={})  
+        params = {'track' => name}
+        xml = Base.request('track.search', params)
+        
+        xml.find('/lfm/results/trackmatches/track').map {|track| Scrobbler::Track.new_from_xml(track, {:include_album_info => false, :include_artist_info => false})}
+      end
+      
       def new_from_xml(xml, o = {})
         data = self.data_from_xml(xml, o)
         return nil if data[:name].nil?
@@ -69,6 +77,7 @@ module Scrobbler
           data[:date] = Time.parse(child.content) if child.name == 'date'
           data[:listeners] = child.content.to_i if child.name == 'listeners'
           data[:artist] = Artist.new_from_xml(child, o) if (child.name == 'artist' || child.name == 'creator') && o[:include_artist_info]
+          data[:artist] ||= child.content if child.name == 'artist'
           data[:album] = Album.new_from_xml(child, o) if child.name == 'album' && o[:include_album_info]
           data[:playcount] = child.content.to_i if child.name == 'playcount'
           data[:tagcount] = child.content.to_i if child.name == 'tagcount'

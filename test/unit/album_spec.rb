@@ -22,6 +22,12 @@ describe Scrobbler::Album do
      @album.should respond_to(:remove_tag)
   end
   
+  it 'should be able to search' do
+    search_results = Scrobbler::Album.search('hearts')
+    
+    search_results.first.artist.name.should eql('The Beatles')
+  end
+  
   it 'should be able to add tags'
   
   it 'should be able to load album info' do

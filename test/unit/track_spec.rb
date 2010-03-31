@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper.rb'
 describe Scrobbler::Track do
 
   before(:all) do 
-    @track = Scrobbler::Track.new(Scrobbler::Artist.new('Carrie Underwood'), 'Before He Cheats')
+    @track = Scrobbler::Track.new('Carrie Underwood', 'Before He Cheats')
   end
   
   it 'should know the artist' do
@@ -27,6 +27,12 @@ describe Scrobbler::Track do
     @track.should respond_to(:remove_tag)
     @track.should respond_to(:search)
     @track.should respond_to(:share)
+  end
+  
+  it 'should be able to search' do
+    search_results = Scrobbler::Track.search('cheats')
+    
+    search_results.first.name.should eql('Before He Cheats')
   end
   
   it 'should be able to add tags'
