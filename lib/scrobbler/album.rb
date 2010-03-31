@@ -58,9 +58,16 @@ module Scrobbler
     attr_reader :chartposition, :position
     
     class << self
+    
+      def search(name, data={})  
+        params = {'album' => name}
+        xml = Base.request('album.search', params)
+        
+        xml.find('/lfm/results/albummatches/album').map {|album| Scrobbler::Album.new_from_xml(album, {:include_artist_info => false})}
+      end
       
       def new_from_xml(xml, o = {})
-        data = self.data_from_xml(xml)
+        data = self.data_from_xml(xml, o)
         return nil if data[:name].empty?
         Album.new(data[:artist], data[:name], data)
       end
@@ -78,6 +85,7 @@ module Scrobbler
           data[:mbid] = child.content if child.name == 'mbid'
           data[:url] = child.content if child.name == 'url'
           data[:artist] = Artist.new_from_xml(child) if (child.name == 'artist' || child.name == 'creator') && o[:include_artist_info]
+          data[:artist] ||= child.content if child.name == 'artist'
           maybe_image_node(data, child)
           if child.name == 'toptags'
             data[:top_tags] = []
