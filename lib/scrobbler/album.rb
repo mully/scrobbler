@@ -60,7 +60,7 @@ module Scrobbler
     class << self
     
       def search(name, data={})  
-        params = {'album' => name}
+        params = {'album' => name}.merge(data)
         xml = Base.request('album.search', params)
         
         xml.find('/lfm/results/albummatches/album').map {|album| Scrobbler::Album.new_from_xml(album, {:include_artist_info => false})}

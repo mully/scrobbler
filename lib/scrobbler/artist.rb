@@ -72,7 +72,7 @@ module Scrobbler
     class << self      
       
       def search(name, data={})  
-        params = {'artist' => name}
+        params = {'artist' => name}.merge(data)
         xml = Base.request('artist.search', params)
         
         xml.find('/lfm/results/artistmatches/artist').map {|artist| Scrobbler::Artist.new_from_xml(artist)}
