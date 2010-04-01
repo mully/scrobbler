@@ -131,7 +131,7 @@ module Scrobbler
       if artist.class == String && name.blank? && data == {}
         raise ArgumentError, "MBID is required for an MBID query" if input.blank?
         @mbid = input
-        load_album_info() # data must be fetched since all we have is an mbid, nothing else useful
+        load_info() # data must be fetched since all we have is an mbid, nothing else useful
       else
         raise ArgumentError, "Artist is required" if artist.blank?
         raise ArgumentError, "Album Name is required" if name.blank?
@@ -139,7 +139,7 @@ module Scrobbler
         #if artist is a string, create a new one.  Otherwise, it already is an artist object
         @artist = artist.is_a?(String) ? Artist.new(artist) : artist    
         @name = name
-        load_album_info() if data[:include_info] || data[:include_all_info]
+        load_info() if data[:include_info] || data[:include_all_info]
         load_track_info() if data[:include_all_info]
       end
     end
@@ -153,7 +153,7 @@ module Scrobbler
     #
     # @todo Parse wiki content
     # @todo Add language code for wiki translation
-     def load_album_info
+     def load_info
       return nil if @album_info_loaded
       params = @mbid ? {'mbid' => @mbid} : {'artist' => @artist.name, 'album' => @name}
       xml = Base.request('album.getinfo', params)

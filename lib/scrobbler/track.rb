@@ -116,7 +116,7 @@ module Scrobbler
       if input.class == String && data[:mbid] && data[:mbid] == true
         raise ArgumentError, "MBID is required for an MBID query" if input.blank?
         @mbid = input
-        load_album_info() unless !data[:include_info].nil? && data[:include_info] == false 
+        load_info() unless !data[:include_info].nil? && data[:include_info] == false 
       else
         raise ArgumentError, "Artist is required" if input.blank?
         raise ArgumentError, "Name is required" if data[:name].blank?

@@ -16,7 +16,7 @@ describe Scrobbler::Album do
   
   it "should implement all methods from the Last.fm 2.0 API" do
      #@album.should respond_to(:add_tags)
-     @album.should respond_to(:load_album_info)
+     @album.should respond_to(:load_info)
      @album.should respond_to(:load_track_info)
      @album.should respond_to(:tags)
      @album.should respond_to(:remove_tag)
@@ -31,7 +31,7 @@ describe Scrobbler::Album do
   it 'should be able to add tags'
   
   it 'should be able to load album info' do
-    @album.load_album_info
+    @album.load_info
     
     @album.mbid.should eql('a33b9822-9f09-4e19-9d6e-e05af85c727b')
     @album.url.should eql('http://www.last.fm/music/Carrie+Underwood/Some+Hearts')
