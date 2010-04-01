@@ -114,7 +114,8 @@ module Scrobbler
       else
         raise ArgumentError, "Artist is required" if input.blank?
         raise ArgumentError, "Name is required" if data[:name].blank?
-        @artist = Artist.new(input)
+        
+        @artist = input.is_a?(String) ? Artist.new(input) : input
         @name = data[:name]
         load_info() if data[:include_info]
       end
