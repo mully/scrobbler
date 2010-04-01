@@ -128,7 +128,7 @@ module Scrobbler
       else
         raise ArgumentError, "Artist is required" if artist.blank?
         raise ArgumentError, "Album Name is required" if name.blank?
-        @artist = Artist.new(artist)
+        @artist = artist.is_a?(String) ? Artist.new(artist) : Artist.new(artist.name)        
         @name = name
         load_album_info() if data[:include_info] || data[:include_all_info]
         load_track_info() if data[:include_all_info]
