@@ -51,6 +51,9 @@ module Scrobbler
     attr_reader :reach, :release_date, :listeners, :playcount, :top_tags
     attr_reader :image_large, :image_medium, :image_small, :tagcount
     
+    # wiki data
+    attr_accessor :published, :summary, :description
+    
     # needed on top albums for tag
     attr_reader :count, :playlist
     
@@ -94,7 +97,11 @@ module Scrobbler
               data[:top_tags] << Tag.new_from_xml(grandchild)
             end
           end  
-        end
+        end        
+        
+        data[:published] = xml.find_first('/lfm/album/wiki/published').content if xml.find_first('/lfm/album/wiki/published')
+        data[:summary] = xml.find_first('/lfm/album/wiki/summary').content if xml.find_first('/lfm/album/wiki/summary')
+        data[:description] = xml.find_first('/lfm/album/wiki/content').content if xml.find_first('/lfm/album/wiki/content')
                 
         # If we have not found anything in the content of this node yet then
         # this must be a simple artist node which has the name of the artist

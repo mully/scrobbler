@@ -151,24 +151,24 @@ module Scrobbler
       "#{API_URL.chop}/2.0/artist/#{CGI::escape(@name)}/events.#{format}"
     end
     
-    def similar(force=false)
-      get_response('artist.getsimilar', :similar, 'similarartists', 'artist', {'artist' => @name}, force)
+    def similar(force=false, options={})
+      get_response('artist.getsimilar', :similar, 'similarartists', 'artist', {'artist' => @name}.merge(options), force)
     end
     
-    def top_fans(force=false)
-      get_response('artist.gettopfans', :top_fans, 'topfans', 'user', {'artist' => @name}, force)
+    def top_fans(force=false, options={})
+      get_response('artist.gettopfans', :top_fans, 'topfans', 'user', {'artist' => @name}.merge(options), force)
     end
     
-    def top_tracks(force=false)
-      get_response('artist.gettoptracks', :top_tracks, 'toptracks', 'track', {'artist'=>@name}, force)
+    def top_tracks(force=false, options={})
+      get_response('artist.gettoptracks', :top_tracks, 'toptracks', 'track', {'artist'=>@name}.merge(options), force)
     end
     
-    def top_albums(force=false)
-      get_response('artist.gettopalbums', :top_albums, 'topalbums', 'album', {'artist'=>@name}, force)
+    def top_albums(force=false, options={})
+      get_response('artist.gettopalbums', :top_albums, 'topalbums', 'album', {'artist'=>@name}.merge(options), force)
     end
     
-    def top_tags(force=false)
-      get_response('artist.gettoptags', :top_tags, 'toptags', 'tag', {'artist' => @name}, force)
+    def top_tags(force=false, options={})
+      get_response('artist.gettoptags', :top_tags, 'toptags', 'tag', {'artist' => @name}.merge(options), force)
     end
         
     def ==(otherArtist)

@@ -43,6 +43,9 @@ module Scrobbler
     attr_accessor :streamable, :album, :date, :now_playing, :tagcount
     attr_accessor :duration, :listeners
     
+    # wiki data
+    attr_accessor :published, :summary, :description
+    
     class << self
       
       def search(name, data={})  
@@ -91,6 +94,9 @@ module Scrobbler
           end
         end
         
+        data[:published] = xml.find_first('/lfm/track/wiki/published').content if xml.find_first('/lfm/track/wiki/published')
+        data[:summary] = xml.find_first('/lfm/track/wiki/summary').content if xml.find_first('/lfm/track/wiki/summary')
+        data[:description] = xml.find_first('/lfm/track/wiki/content').content if xml.find_first('/lfm/track/wiki/content')
         
         data[:rank] = xml['rank'].to_i if xml['rank']
         data[:now_playing] = true if xml['nowplaying'] && xml['nowplaying'] == 'true'
